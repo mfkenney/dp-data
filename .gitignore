@@ -1,0 +1,7 @@
+MANIFEST
+build
+dist
+semantic.cache
+.idea
+*.pyc
+.DS_Store
