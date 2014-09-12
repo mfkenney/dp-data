@@ -1,0 +1,189 @@
+---
+dock:
+  name: DSC Status
+  data:
+    - name: T_ambient
+      desc: Ambient temperature
+      units: degC
+      scale: 0.001
+      precision: '0.1'
+    - name: T_heatsink
+      desc: Heatsink temperature
+      units: degC
+      scale: 0.001
+      precision: '0.1'
+    - name: humidity
+      desc: Internal humidity
+      units: '%'
+      precision: '1'
+    - name: ips_status
+      desc: IPS interface bits
+      tostr: !!python/name:hex
+    - name: v12
+      desc: 12v current
+      units: amps
+      scale: 0.001
+      precision: '0.001'
+profiler:
+  name: DPC Status
+  data:
+    - name: profile
+      desc: Profile number
+    - name: state
+      desc: Profiler state
+      tostr: !!python/name:str
+    - name: itemp
+      desc: Internal temperatures
+      units: degC
+      scale: 0.001
+      precision: '0.1'
+      nvals: 3
+    - name: humidity
+      desc: Internal humidity
+      units: '%'
+      precision: '1'
+    - name: pressure
+      desc: Profiler pressure
+      units: dbar
+      scale: 0.001
+      precision: '0.01'
+    - name: voltage
+      desc: Battery voltage
+      units: volts
+      scale: 0.001
+      precision: '0.001'
+    - name: current
+      desc: Battery current
+      units: amps
+      scale: 0.001
+      precision: '0.001'
+    - name: energy
+      desc: Battery capacity
+      units: Wh
+      scale: 0.001
+      precision: '0.001'
+    - name: motor_current
+      desc: MMP motor current
+      units: amps
+      scale: 0.001
+      precision: '0.001'
+ctd_1:
+  name: CTD Data
+  data:
+    - name: condwat
+      desc: Conductivity
+      units: mS/cm
+      precision: '0.0001'
+    - name: tempwat
+      desc: Temperature
+      units: degC
+      precision: '0.0001'
+    - name: preswat
+      desc: Pressure
+      units: dbar
+      precision: '0.01'
+optode_1:
+  name: Optode Data
+  data:
+    - name: doconcs
+      desc: Calibrated phase
+      units: degrees
+      precision: '0.001'
+    - name: t
+      desc: Optode temperature
+      units: degC
+      precision: '0.001'
+flntu_1:
+  name: FLNTU Data
+  data:
+    - name: chlaflo
+      desc: Chlorophyl-a concentration
+      units: counts
+      precision: '1'
+    - name: ntuflo
+      desc: Turbidity
+      units: counts
+      precision: '1'
+flcd_1:
+  name: FLCD Data
+  data:
+    - name: cdomflo
+      desc: Colored Dissolved Organic Matter
+      units: counts
+      precision: '1'
+acm_1:
+  name: ACM Data
+  data:
+    - name: va
+      desc: Path velocity A
+      units: cm/s
+      precison: '0.01'
+    - name: vb
+      desc: Path velocity B
+      units: cm/s
+      precison: '0.01'
+    - name: vc
+      desc: Path velocity C
+      units: cm/s
+      precison: '0.01'
+    - name: vd
+      desc: Path velocity D
+      units: cm/s
+      precison: '0.01'
+    - name: hx
+      desc: Normalized Magnetic Flux X
+      precision: '0.0001'
+    - name: hy
+      desc: Normalized Magnetic Flux Y
+      precision: '0.0001'
+    - name: hz
+      desc: Normalized Magnetic Flux Z
+      precision: '0.0001'
+    - name: tx
+      desc: Tilt X
+      units: degrees
+      precision: '0.01'
+    - name: ty
+      desc: Tilt Y
+      units: degrees
+      precision: '0.01'
+charger:
+  name: Battery Charging
+  data:
+    - name: current
+      desc: Charging current
+      units: amps
+      scale: 0.001
+      precision: '0.001'
+      nvals: 10
+    - name: energy
+      desc: Battery capacity
+      units: Wh
+      scale: 0.001
+      precision: '0.001'
+    - name: rel_charge
+      desc: Relative Charge
+      units: '%'
+      precision: '1'
+mmp:
+  name: McLane Controller status
+  data:
+    - name: current
+      desc: Motor current
+      units: amps
+      scale: 0.001
+      precision: '0.001'
+    - name: mode
+      desc: Profiling mode
+      tostr: !!python/name:str
+    - name: pnum
+      desc: Profile number
+      precision: '1'
+    - name: pressure
+      desc: MMP pressure
+      units: dbar
+      precision: '0.01'
+    - name: vbatt
+      desc: Battery voltage
+      units: volts
+      precision: '0.1'
