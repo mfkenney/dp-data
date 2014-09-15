@@ -1,3 +1,7 @@
+from pkg_resources import resource_string
+import yaml
+
+
 __version__ = '0.1'
 
 
@@ -17,3 +21,10 @@ def expand_lists(data):
             del newdict[k]
             newdict.update(d)
     return newdict
+
+
+def data_dictionary():
+    """
+    Return the Deep Profiler data dictionary.
+    """
+    return yaml.load(resource_string(__name__, 'data_dictionary.yaml'))
