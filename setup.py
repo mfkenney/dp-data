@@ -41,7 +41,8 @@ setup(name="Dpdata",
       entry_points={
           "console_scripts": [
               "mktables = dpdata.util.mktables:main",
-              "mpk2sql = dpdata.util.mpk2sql:main"
+              "mpk2sql = dpdata.util.mpk2sql:main",
+              "mpk2csv = dpdata.util.mpk2csv:main"
           ]
       },
       scripts=[])
