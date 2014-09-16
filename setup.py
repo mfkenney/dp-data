@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from distutils.core import setup
+from setuptools import setup
 import os
 import codecs
 import re
@@ -32,4 +32,16 @@ setup(name="Dpdata",
       author_email="mikek@apl.uw.edu",
       url="http://wavelet.apl.uw.edu/~mike/python/",
       packages=["dpdata"],
+      install_requires=["msgpack-python",
+                        "sqlalchemy",
+                        "pandas",
+                        "pyzmq",
+                        "PyYAML"],
+      package_data={"dpdata": ["data_dictionary.yaml"]},
+      entry_points={
+          "console_scripts": [
+              "mktables = dpdata.util.mktables:main",
+              "mpk2sql = dpdata.util.mpk2sql:main"
+          ]
+      },
       scripts=[])
