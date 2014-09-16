@@ -2,7 +2,7 @@ from pkg_resources import resource_string
 import yaml
 
 
-__version__ = '0.1'
+__version__ = '0.2'
 
 
 def expand_lists(data):
