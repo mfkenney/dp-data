@@ -118,7 +118,7 @@ def make_table(eng, sensor, meta, data_dict):
     tbl = Table(sensor, meta, *cols)
     meta.create_all(eng)
     mdtable = meta.tables.get('metadata')
-    if mdtable:
+    if mdtable is not None:
         mdcols = ('sensor', 'varname', 'units', 'precision', 'scale')
         conn = eng.connect()
         conn.execute(mdtable.insert(),
