@@ -2,6 +2,7 @@
 """
 Populate an SQL database with tables for Deep Profiler data.
 """
+from __future__ import print_function
 import argparse
 from dpdata import data_dictionary
 from dpdata.sql import make_table
@@ -37,9 +38,9 @@ def main():
 
     eng = create_engine(args.db)
     meta = make_tables(eng, data_dictionary())
-    print 'Created tables:'
+    print('Created tables:')
     for t in meta.sorted_tables:
-        print '\t{0}'.format(t.name)
+        print('\t{0}'.format(t.name))
 
 
 if __name__ == '__main__':

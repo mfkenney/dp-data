@@ -57,7 +57,7 @@ def get_dataset(eng, table, t_start, t_end):
     """
     query = 'select * from {} where timestamp between ? and ?'.format(table)
     return pd.read_sql_query(query, eng,
-                             params=(t_start*1000000L, t_end*1000000L))
+                             params=(t_start*1000000, t_end*1000000))
 
 
 def put_dataset(eng, table, df):

@@ -28,14 +28,14 @@ def main():
     meta = MetaData()
     meta.reflect(bind=eng)
     if args.name not in meta.tables:
-        raise KeyError('Bad sensor name: {0}'.format(args.name))
+        raise RuntimeError('Bad sensor name: {0}'.format(args.name))
 
     tbl = meta.tables[args.name]
     conn = eng.connect()
     ins = tbl.insert()
     for f in args.infiles:
         for secs, usecs, data in get_records(f):
-            data['timestamp'] = long(secs * 1000000L) + usecs
+            data['timestamp'] = int(secs * 1000000) + usecs
             try:
                 add_record(conn, ins, expand_lists(data))
             except IntegrityError as e:
