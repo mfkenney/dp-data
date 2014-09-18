@@ -27,7 +27,11 @@ def main():
                         default=sys.stdout)
     args = parser.parse_args()
 
-    cfg = (data_dictionary())[args.name]
+    try:
+        cfg = (data_dictionary())[args.name]
+    except KeyError:
+        raise RuntimeError('Invalid sensor name: {0}'.format(args.name))
+
     varnames = []
     fcvt = {}
     for vdesc in cfg['data']:
