@@ -74,13 +74,13 @@ def process_optode(ctd, optode, fc, lat=0, lon=0):
     # the Optode data
     d = {}
     for column in ('pracsal', 'tempwat', 'preswat'):
-        f = interp1d(ctd['timestamp'], ctd[column])
+        f = interp1d(ctd['timestamp'], ctd[column], bounds_error=False)
         d[column] = f(optode['timestamp'])
     mask = np.isnan(d['pracsal'])
     sa = gsw.SA_from_SP(d['pracsal'][~mask], d['preswat'][~mask], lon, lat)
     ct = gsw.CT_from_t(sa, d['tempwat'][~mask], d['preswat'][~mask])
     pdens = gsw.rho(sa, ct, np.zeros(len(sa)))
-    do = dosv(optode['doconc'][~mask],
+    do = dosv(optode['doconcs'][~mask],
               optode['t'][~mask],
               d['pracsal'][~mask],
               d['preswat'][~mask],
