@@ -6,6 +6,7 @@
 import pandas as pd
 from sqlalchemy import Table, MetaData, select, Column, Integer,\
     Float, Text
+from sqlalchemy.sql import func
 from collections import namedtuple
 
 
@@ -45,9 +46,24 @@ def get_calibration(eng, sensor):
     return dict(result.fetchall())
 
 
-def get_dataset(eng, table, t_start, t_end):
+def get_time_range(eng, table_name):
     """
-    Return a data-set from the database.
+    Return a tuple of the start and end times (in seconds since 1/1/1970 UTC)
+    for the named SQL table.
+    """
+    meta = MetaData()
+    tbl = Table(table_name, meta, autoload=True, autoload_with=eng)
+    s = select([func.min(tbl.c.timestamp), func.max(tbl.c.timestamp)])
+    conn = eng.connect()
+    t0, t1 = conn.execute(s).fetchone()
+    return t0//1000000, (t1 + 1000000)//1000000
+
+
+def get_dataset(eng, table, t_start=0, t_end=0):
+    """
+    Return a data-set from the database. If *t_end* is 0, select
+    from *t_start* to the end of the table, if both bounds are 0,
+    select all rows of the table.
 
     :param eng: SQLAlchemy database engine
     :param table: SQL table name
@@ -55,9 +71,16 @@ def get_dataset(eng, table, t_start, t_end):
     :param t_end: end time
     :rtype: :class:`pandas.DataFrame`
     """
-    query = 'select * from {} where timestamp between ? and ?'.format(table)
-    return pd.read_sql_query(query, eng,
-                             params=(t_start*1000000, t_end*1000000))
+    if t_start == 0 and t_end == 0:
+        query = 'select * from {}'.format(table)
+        params = None
+    elif t_end == 0:
+        query = 'select * from {} where timestamp > ?'.format(table)
+        params = (t_start*1000000,)
+    else:
+        query = 'select * from {} where timestamp between ? and ?'.format(table)
+        params=(t_start*1000000, t_end*1000000)
+    return pd.read_sql_query(query, eng, params=params)
 
 
 def put_dataset(eng, table, df):
