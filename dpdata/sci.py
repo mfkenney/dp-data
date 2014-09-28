@@ -6,7 +6,6 @@
 import numpy as np
 import gsw
 import pandas as pd
-from scipy.interpolate import interp1d
 
 
 def dosv(Pt, T, S, P, Pdens, fc):
@@ -73,21 +72,27 @@ def process_optode(ctd, optode, fc, lat=0, lon=0):
     # Interpolate CTD data onto the sample times of
     # the Optode data
     d = {}
+    nan = float('NaN')
     for column in ('pracsal', 'tempwat', 'preswat'):
-        f = interp1d(ctd['timestamp'], ctd[column], bounds_error=False)
-        d[column] = f(optode['timestamp'])
-    mask = np.isnan(d['pracsal'])
-    sa = gsw.SA_from_SP(d['pracsal'][~mask], d['preswat'][~mask], lon, lat)
-    ct = gsw.CT_from_t(sa, d['tempwat'][~mask], d['preswat'][~mask])
+        d[column] = np.interp(optode['timestamp'],
+                              ctd['timestamp'],
+                              ctd[column],
+                              left=nan,
+                              right=nan)
+    # Mask off any sample points that are outside of the
+    # interpolation range.
+    mask = ~(np.isnan(d['pracsal']))
+    sa = gsw.SA_from_SP(d['pracsal'][mask], d['preswat'][mask], lon, lat)
+    ct = gsw.CT_from_t(sa, d['tempwat'][mask], d['preswat'][mask])
     pdens = gsw.rho(sa, ct, np.zeros(len(sa)))
-    do = dosv(optode['doconcs'][~mask],
-              optode['t'][~mask],
-              d['pracsal'][~mask],
-              d['preswat'][~mask],
+    do = dosv(optode['doconcs'][mask],
+              optode['t'][mask],
+              d['pracsal'][mask],
+              d['preswat'][mask],
               pdens, fc)
-    return pd.DataFrame({'timestamp': optode['timestamp'][~mask],
+    return pd.DataFrame({'timestamp': optode['timestamp'][mask],
                          'doxygen': do,
-                         'preswat': d['preswat'][~mask]})
+                         'preswat': d['preswat'][mask]})
 
 
 def process_ctd(ctd, lat=0, lon=0):
