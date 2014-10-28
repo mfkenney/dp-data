@@ -31,8 +31,9 @@ setup(name="Dpdata",
       author="Michael Kenney",
       author_email="mikek@apl.uw.edu",
       url="http://wavelet.apl.uw.edu/~mike/python/",
-      packages=["dpdata"],
+      packages=["dpdata", "dpdata.util"],
       install_requires=["msgpack-python",
+                        "gsw",
                         "sqlalchemy",
                         "pandas",
                         "pyzmq",
@@ -42,7 +43,8 @@ setup(name="Dpdata",
           "console_scripts": [
               "mktables = dpdata.util.mktables:main",
               "mpk2sql = dpdata.util.mpk2sql:main",
-              "mpk2csv = dpdata.util.mpk2csv:main"
+              "mpk2csv = dpdata.util.mpk2csv:main",
+              "dp2sql = dpdata.util.dp2sql:main"
           ]
       },
       scripts=[])
