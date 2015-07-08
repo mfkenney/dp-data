@@ -149,7 +149,7 @@ def process_flntu(ctd, flntu, c_chla, c_ntu):
     ntu = c_ntu[1] * (flntu['ntuflo'][mask] - c_ntu[0])
     return pd.DataFrame({'timestamp': flntu['timestamp'][mask],
                          'chla': chla,
-                         'ntu': ntu,
+                         'turbidity': ntu,
                          'preswat': pr[mask]})
 
 
