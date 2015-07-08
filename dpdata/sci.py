@@ -116,3 +116,69 @@ def process_ctd(ctd, lat=0, lon=0):
                          'tempwat': ctd['tempwat'],
                          'preswat': ctd['preswat'],
                          'density': density})
+
+
+def process_flntu(ctd, flntu, c_chla, c_ntu):
+    """
+    Process the FLNTU data by converting from A/D counts to physical units
+    and adding a pressure record.
+
+    :param ctd: processed CTD data-set
+    :type ctd: :class:`pandas.DataFrame`
+    :param flntu: raw FLNTU data-set
+    :type flntu: :class:`pandas.DataFrame`
+    :param c_chla: coefficients for Chlorophyl-a values
+    :type c_chla: 2-element numpy array (dark counts, scale factor)
+    :param c_ntu: coefficients for NTU values
+    :type c_ntu: 2-element numpy array (dark counts, scale factor)
+    :returns: processed Optode data-set
+    :rtype: :class:`pandas.DataFrame`
+    """
+    # Interpolate CTD pressure record onto the sample times of
+    # the FLNTU data.
+    nan = float('NaN')
+    pr = np.interp(flntu['timestamp'],
+                   ctd['timestamp'],
+                   ctd['preswat'],
+                   left=nan,
+                   right=nan)
+    # Mask off any sample points that are outside of the
+    # interpolation range.
+    mask = ~(np.isnan(pr))
+    chla = c_chla[1] * (flntu['chlaflo'][mask] - c_chla[0])
+    ntu = c_ntu[1] * (flntu['ntuaflo'][mask] - c_ntu[0])
+    return pd.DataFrame({'timestamp': flntu['timestamp'][mask],
+                         'chla': chla,
+                         'ntu': ntu,
+                         'preswat': pr[mask]})
+
+
+def process_flcd(ctd, flcd, c_cdom):
+    """
+    Process the FLCD data by converting from A/D counts to physical units
+    and adding a pressure record.
+
+    :param ctd: processed CTD data-set
+    :type ctd: :class:`pandas.DataFrame`
+    :param flcd: raw FLCD data-set
+    :type flcd: :class:`pandas.DataFrame`
+    :param c_cdom: coefficients for CDOM values
+    :type c_cdom: 2-element numpy array (dark counts, scale factor)
+    :returns: processed FLCD data-set
+    :rtype: :class:`pandas.DataFrame`
+    """
+    # Interpolate CTD pressure record onto the sample times of
+    # the FLCD data.
+    nan = float('NaN')
+    pr = np.interp(flcd['timestamp'],
+                   ctd['timestamp'],
+                   ctd['preswat'],
+                   left=nan,
+                   right=nan)
+    # Mask off any sample points that are outside of the
+    # interpolation range.
+    mask = ~(np.isnan(pr))
+    cdom = c_cdom[1] * (flcd['cdomflo'][mask] - c_cdom[0])
+    return pd.DataFrame({'timestamp': flcd['timestamp'][mask],
+                         'cdom': cdom,
+                         'preswat': pr[mask]})
