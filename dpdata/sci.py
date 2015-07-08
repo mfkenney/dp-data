@@ -146,7 +146,7 @@ def process_flntu(ctd, flntu, c_chla, c_ntu):
     # interpolation range.
     mask = ~(np.isnan(pr))
     chla = c_chla[1] * (flntu['chlaflo'][mask] - c_chla[0])
-    ntu = c_ntu[1] * (flntu['ntuaflo'][mask] - c_ntu[0])
+    ntu = c_ntu[1] * (flntu['ntuflo'][mask] - c_ntu[0])
     return pd.DataFrame({'timestamp': flntu['timestamp'][mask],
                          'chla': chla,
                          'ntu': ntu,
