@@ -13,6 +13,10 @@ so I suggest installing in a virtualenv::
   mkvirtualenv dp
   pip install Dpdata-<VERSION>.tar.gz
 
+Although it's not a requirement, you might also want to install the CSVKit
+package::
+
+  pip install csvkit
 
 Scripts
 -------
