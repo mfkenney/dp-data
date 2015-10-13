@@ -318,10 +318,10 @@ def process_acm(ctd, acm, pdir, magcal=None, magvar=0):
     # interpolation range.
     mask = ~(np.isnan(pr))
     if magcal is not None:
-        vel = acm_enu(acm_ijk(acm, pdir),
-                      acm_heading(acm, magcal),
+        vel = acm_enu(acm_ijk(acm[mask], pdir),
+                      acm_heading(acm[mask], magcal),
                       magvar)
     else:
-        vel = acm_ijk(acm, pdir)
+        vel = acm_ijk(acm[mask], pdir)
     vel['preswat'] = pr[mask]
     return vel
