@@ -6,6 +6,10 @@
 import numpy as np
 import gsw
 import pandas as pd
+from collections import namedtuple
+
+
+MagCal = namedtuple('MagCal', ['offset', 'scale', 'bias'])
 
 
 def dosv(Pt, T, S, P, Pdens, fc):
@@ -182,3 +186,142 @@ def process_flcd(ctd, flcd, c_cdom):
     return pd.DataFrame({'timestamp': flcd['timestamp'][mask],
                          'cdom': cdom,
                          'preswat': pr[mask]})
+
+
+def acm_ijk(acm, pdir):
+    """
+    Convert the ACM velocities from beam coordinates to the vehicle
+    coordinate system (ijk).
+
+    :param acm: raw ACM data-set
+    :type acm: :class:`pandas.DataFrame`
+    :param pdir: profile direction; 'up' or 'down'
+    :type pdir: string
+    :returns: :class:`pandas.DataFrame` with converted velocities
+    """
+    vi = (-acm['va'] - acm['vc']) / np.sqrt(2)
+    vj = (acm['va'] - acm['vc']) / np.sqrt(2)
+    if pdir == 'up':
+        vk = vi - np.sqrt(2) * acm['vd']
+    elif pdir == 'down':
+        vk = -vi + np.sqrt(2) * acm['vb']
+    else:
+        raise ValueError('Invalid profile direction')
+    return pd.DataFrame({'timestamp': acm['timestamp'],
+                         'vi': vi, 'vj': vj, 'vk': vk})
+
+
+def acm_magcal(cal):
+    """
+    Calculate the magnetometer calibration parameters from the compass
+    calibration values. The calibration :class:`pandas.DataFrame` must
+    contain (at least) the following columns:
+
+        * hdg  (ACM heading)
+        * hx, hy, hz  (Magnetometer components)
+
+    :param cal: compass calibration data
+    :type cal: :class:`pandas.DataFrame`
+    :returns: :class:`MagCal` instance
+    """
+    hx = cal['hx'].values
+    hy = cal['hy'].values
+    offset = np.array([np.mean(hx),
+                       np.mean(hy)], np.float32)
+    scale = np.array([np.max(np.abs(hx - offset[0])),
+                      np.max(np.abs(hy - offset[1]))],
+                     np.float32)
+    x = (hx - offset[0])/scale[0]
+    y = (hy - offset[1])/scale[1]
+    bias = 90 - cal['hdg'].values - np.rad2deg(np.arctan2(x, y))
+    # Remap bias to [-180, 180]
+    j = np.nonzero(bias > 180.0)
+    bias[j] = bias[j] - 360.0
+    j = np.nonzero(bias < -180.0)
+    bias[j] = bias[j] + 360.0
+    return MagCal(offset=offset,
+                  scale=scale,
+                  bias=np.mean(bias))
+
+
+def acm_heading(acm, mcal):
+    """
+    Calculate the ACM heading from the raw ACM magnetometer data
+    along with the magnetometer calibration values.
+
+    :param acm: raw ACM data-set
+    :type acm: :class:`pandas.DataFrame`
+    :param mcal: magnetometer calibration data
+    :type cal: :class:`MagCal`
+    :returns: array of heading values
+    :rtype: numpy array
+    """
+    x = (acm['hx'] - mcal.offset[0]) / mcal.scale[0]
+    y = (acm['hy'] - mcal.offset[1]) / mcal.scale[1]
+    angle = 90. - np.rad2deg(np.arctan2(x, y)) + mcal.bias
+    return np.mod(360. + angle, 360.)
+
+
+def acm_enu(vel, hdg, magvar):
+    """
+    Convert the ACM velocities from vehicle coordinates to geographic
+    coordinates, East-North-Up.
+
+    :param vel: output from acm_ijk
+    :type vel: :class:`pandas.DataFrame`
+    :param hdg: vehicle magnetic heading (output of acm_heading)
+    :type hdg: numpy array
+    :param magvar: magnetic variation in degrees
+    :type magvar: float
+    :returns: :class:`pandas.DataFrame` with converted velocities
+    """
+    x = np.deg2rad(90. - hdg - magvar)
+    s = np.sin(x)
+    c = np.cos(x)
+    east = c * vel['vi'] - s * vel['vj']
+    north = c * vel['vj'] + s * vel['vi']
+    return pd.DataFrame({'ve': east,
+                         'vn': north,
+                         'vu': vel['vk'],
+                         'timestamp': vel['timestamp']})
+
+
+def process_acm(ctd, acm, pdir, magcal=None, magvar=0):
+    """
+    Process an ACM data-set by converting the velocity values from
+    beam coordinates to either vehicle coordinates (if *magcal* is
+    `None`) or geographic coordinates and adding a pressure
+    record.
+
+    :param ctd: processed CTD data-set
+    :type ctd: :class:`pandas.DataFrame`
+    :param acm: raw ACM data-set
+    :type acm: :class:`pandas.DataFrame`
+    :param pdir: profile direction; 'up' or 'down'
+    :type pdir: string
+    :param magcal: magnetometer calibration or `None`
+    :type magcal: :class:`MagCal`
+    :param magvar: magnetic variation in degrees (east positive)
+    :type magvar: float
+    :returns: processed ACM data-set
+    :rtype: :class:`pandas.DataFrame`
+    """
+    # Interpolate CTD pressure record onto the sample times of
+    # the ACM data.
+    nan = float('NaN')
+    pr = np.interp(acm['timestamp'],
+                   ctd['timestamp'],
+                   ctd['preswat'],
+                   left=nan,
+                   right=nan)
+    # Mask off any sample points that are outside of the
+    # interpolation range.
+    mask = ~(np.isnan(pr))
+    if magcal is not None:
+        vel = acm_enu(acm_ijk(acm, pdir),
+                      acm_heading(acm, magcal),
+                      magvar)
+    else:
+        vel = acm_ijk(acm, pdir)
+    vel['preswat'] = pr[mask]
+    return vel
