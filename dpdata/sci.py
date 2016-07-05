@@ -325,3 +325,32 @@ def process_acm(ctd, acm, pdir, magcal=None, magvar=0):
         vel = acm_ijk(acm[mask], pdir)
     vel['preswat'] = pr[mask]
     return vel
+
+
+def process_ballast(ctd, mmp):
+    """
+    Create a record of the profiler ballasting performance by merging
+    the in-situ water density with the motor current.
+
+    :param ctd: processed CTD data-set
+    :type ctd: :class:`pandas.DataFrame`
+    :param mmp: raw MMP data-set
+    :type mmp: :class:`pandas.DataFrame`
+    :returns: ballast data-set
+    :rtype: :class:`pandas.DataFrame`
+    """
+    # Interpolate CTD density record onto the sample times of
+    # the Profiler data.
+    nan = float('NaN')
+    dens = np.interp(mmp['timestamp'],
+                     ctd['timestamp'],
+                     ctd['density'],
+                     left=nan,
+                     right=nan)
+    # Mask off any sample points that are outside of the
+    # interpolation range.
+    mask = ~(np.isnan(dens))
+    return pd.DataFrame({'timestamp': mmp['timestamp'][mask],
+                         'pressure': mmp['pressure'][mask],
+                         'density': dens[mask],
+                         'current': mmp['current'][mask]})
