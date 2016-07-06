@@ -330,7 +330,7 @@ def process_acm(ctd, acm, pdir, magcal=None, magvar=0):
 def process_ballast(ctd, mmp):
     """
     Create a record of the profiler ballasting performance by merging
-    the in-situ water density with the motor current.
+    the in-situ water density and temperature with the motor current.
 
     :param ctd: processed CTD data-set
     :type ctd: :class:`pandas.DataFrame`
@@ -347,10 +347,16 @@ def process_ballast(ctd, mmp):
                      ctd['density'],
                      left=nan,
                      right=nan)
+    tempwat = np.interp(mmp['timestamp'],
+                        ctd['timestamp'],
+                        ctd['tempwat'],
+                        left=nan,
+                        right=nan)
     # Mask off any sample points that are outside of the
     # interpolation range.
     mask = ~(np.isnan(dens))
     return pd.DataFrame({'timestamp': mmp['timestamp'][mask],
                          'pressure': mmp['pressure'][mask],
+                         'temperature': tempwat[mask],
                          'density': dens[mask],
                          'current': mmp['current'][mask]})
